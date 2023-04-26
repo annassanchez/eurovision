@@ -1,38 +1,25 @@
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common import keys
-import re
-import time
-from collections import defaultdict
+from datetime import date
+import json
 
+def link_generator():
+    """
+    The link_generator() function generates a dictionary of Eurovision song contest URLs for each year from 1956 to the current year. 
+    The URLs are stored in a dictionary called dict_urls which has two keys, year and url, with empty lists as their values.
+    A loop is used to iterate through years from 1956 up to but not including the current year. 
+    For each year, a URL is generated using an f-string that includes the year in the URL. 
+    The year and the corresponding URL are then added as a key-value pair to the dictionary dict_urls.
 
-class Scraper():
-
-    def __init__(self):
-        try:
-            options = webdriver.ChromeOptions()
-            options.add_argument("headless")
-            options.add_argument("no-sandbox")
-            options.add_argument("disable-dev-shm-usage")
-            self.driver = webdriver.Chrome(chrome_options=options)
-            return
-        except Exception as e:
-            print('Chrome WebDriver is missing')
-            pass
-
-        
-        try:
-            options = webdriver.firefox.options.Options()
-            options.add_argument('--headless')
-            self.driver = webdriver.Firefox(options=options)
-            return
-        except Exception as e:
-            print('Firefox WebDriver is missing')
-            pass
-
-        try:
-            self.driver = webdriver.Safari()
-            return
-        except:
-            print('Safari is missing')
-            pass
+    After generating all the URLs, the json.dump() function is used to write the contents of the dict_urls dictionary to a file named "sample.json" in JSON format.
+    Finally, the dict_urls dictionary is returned by the function.
+    """
+    dict_urls = {
+        'year':[], 
+        'url':[]
+    }
+    for year in range(1956, int(date.today().year)):
+        url = f'https://eurovisionworld.com/eurovision/{year}'
+        dict_urls['year'].append(year)
+        dict_urls['url'].append(url)
+    with open("../eurovision_crawler/link.json", "w") as outfile:
+        json.dump(dict_urls, outfile)
+    return dict_urls
