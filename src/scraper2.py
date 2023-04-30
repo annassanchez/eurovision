@@ -19,16 +19,20 @@ def seleniumEurovisionArchives(url):
     options.headless = False
     options.add_argument("--window-size=1920,1200")
     driver = webdriver.Firefox(options=options)
-    driver.get(url)
-    driver.maximize_window()
-    driver.set_window_size(1920, 1080)
-    driver.implicitly_wait(30)
     # code that uses the driver
     dict_vacio = {key: [] for key in ['year', 'city', 'winners', 'participant', 'song', 'song_youtube', 'points', 'url']}
-    for next in range(1,6):
+    url_list = [f'https://eurovision.tv/history?page={i}' for i in range(5)]
+    for next, url in enumerate(url_list):
+        try:
+            driver.get(url)
+            driver.maximize_window()
+            #driver.set_window_size(1920, 1080)
+            driver.implicitly_wait(30)
+        except Exception as e:
+            print(f"Error occurred when opening url: {e}")
         for i in range(1,15):
             try: 
-                print('lo intento')
+                print(f'lo intento. page: {next}, element: {i}')
                 year = driver.find_element(By.XPATH, f'//table/tbody/tr[{i}]/td[1]/a').text
                 city = driver.find_element(By.XPATH, f'//table/tbody/tr[{i}]/td[2]/span').text
                 winners = driver.find_element(By.XPATH, f'//table/tbody/tr[{i}]/td[3]/a/span[2]').text
@@ -52,15 +56,10 @@ def seleniumEurovisionArchives(url):
             except Exception as e:
                 print(f"Error occurred for row {i}: {e}")
                 continue
-        with open(f'../data/dict_test_{next}.pickle', 'wb') as f:
+        with open(f'../data/temp/dict_main_archives_{next}.pickle', 'wb') as f:
                 pickle.dump(dict_vacio, f)
         print('done with this page')
-        try:
-            sleep(5)
-            #driver.find_element(By.XPATH, '/html/body/div[1]/div/div/div[3]/div/div/div/div/nav/ul/li[6]/a').click()
-            element = driver.find_element(By.CSS_SELECTOR, "li.pager__item:nth-child(6) > a:nth-child(1)")
-            driver.execute_script("arguments[0].click();", element)
-        except:
-            print('No hay más páginas')
-            finished = True
+        clear_output(True)
+    with open(f'../data/archives.pickle', 'wb') as f:
+        pickle.dump(dict_vacio, f)
     return dict_vacio
