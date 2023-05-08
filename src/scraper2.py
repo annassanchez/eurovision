@@ -3,6 +3,7 @@ import re
 import pickle
 from datetime import datetime
 import numpy as np
+import pandas as pd
 
 from IPython.display import clear_output
 
@@ -61,5 +62,81 @@ def seleniumEurovisionArchives(url):
         print('done with this page')
         clear_output(True)
     with open(f'../data/archives.pickle', 'wb') as f:
+        pickle.dump(dict_vacio, f)
+    return dict_vacio
+
+def finalEurovision():
+    options = Options()
+    options.headless = False
+    options.add_argument("--window-size=1920,1200")
+    driver = webdriver.Firefox(options=options)
+    with open('../data/archives.pickle', 'rb') as base_data:
+        base_data = pickle.load(base_data)
+    url_list = pd.DataFrame(base_data)['url'].tolist()
+    dict_vacio = {key: [] for key in ['R/O', 	'Half', 	'Country', 	'Participant', 	'Song', 'Song_Youtube',	'Points', 	'Rank', 'Final']}
+    for i, url in enumerate(url_list):
+        try:
+            print('lo intento')
+            try:
+                url_final = url + '/final'
+                driver.get(url_final)
+                driver.maximize_window()
+                for element in range(1, 27):
+                    r_o = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(1)').text
+                                                                #.cols-7 > tbody:nth-child(2) > tr:nth-child(1) > td:nth-child(1)
+                    half = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(2)').text
+                    country = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(3)').text
+                    participant = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(4)').text
+                    song = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(5)').text
+                    try:
+                        song_youtube = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(5) > a:nth-child(1)').get_attribute('href')    
+                    except:
+                        song_youtube = np.nan
+                    points = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(6)').text
+                    rank = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(7)').text
+                    dict_vacio['R/O'].append(r_o)
+                    dict_vacio['Half'].append(half)
+                    dict_vacio['Country'].append(country)
+                    dict_vacio['Participant'].append(participant)
+                    dict_vacio['Song'].append(song)
+                    dict_vacio['Song_Youtube'].append(song_youtube)
+                    dict_vacio['Points'].append(points)
+                    dict_vacio['Rank'].append(rank)
+                    dict_vacio['Final'].append(url.split('/')[-1])
+                with open(f'../data/temp/archive_{i}.pickle', 'wb') as f:
+                    pickle.dump(dict_vacio, f)
+            except:
+                url_final = url + '/grand-final'
+                driver.get(url_final)
+                driver.maximize_window()
+                for element in range(1, 27):
+                    r_o = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(1)').text
+                    half = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(2)').text
+                    country = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(3)').text
+                    participant = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(4)').text
+                    song = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(5)').text
+                    try:
+                        song_youtube = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(5) > a:nth-child(1)').get_attribute('href')    
+                    except:
+                        song_youtube = np.nan
+                    points = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(6)').text
+                    rank = driver.find_element(By.CSS_SELECTOR, f'.cols-7 > tbody:nth-child(2) > tr:nth-child({element}) > td:nth-child(7)').text
+                    dict_vacio['R/O'].append(r_o)
+                    dict_vacio['Half'].append(half)
+                    dict_vacio['Country'].append(country)
+                    dict_vacio['Participant'].append(participant)
+                    dict_vacio['Song'].append(song)
+                    dict_vacio['Song_Youtube'].append(song_youtube)
+                    dict_vacio['Points'].append(points)
+                    dict_vacio['Rank'].append(rank)
+                    dict_vacio['Final'].append(url.split('/')[-1])
+                with open(f'../data/temp/final_{i}.pickle', 'wb') as f:
+                    pickle.dump(dict_vacio, f)
+        except Exception as e:
+            print(f"Error occurred for row {url_final}: {e}")
+            continue
+        print('done with this page')
+        clear_output(True)
+    with open(f'../data/final.pickle', 'wb') as f:
         pickle.dump(dict_vacio, f)
     return dict_vacio
